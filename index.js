@@ -5,6 +5,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const methodOverride = require("method-override");
+const { v4: uuidv4 } = require('uuid');
 
 app.use(methodOverride("_method"));
 app.use(express.urlencoded({extended : true}));
@@ -125,10 +126,38 @@ const connection = mysql.createConnection({
     }
   });
 
+  app.get("/user/add",(req,res) =>{
+    // res.send("it is working");
+    res.render("add.ejs");
+  });
+
+  app.post("/user" , (req,res)=>{
+    let id=uuidv4();
+    let {username , email , password} = req.body;
+    let userArray = [id,username, email, password];
+    let q = "insert into user (id , username , email,password) values ?"
+    try{
+    connection.query(q,[[userArray]],(err,result)=>{
+      if(err) throw err;
+      // res.render("users.ejs",{userArray});
+      res.redirect("/user")
+    })
+    }catch(err){
+      res.send("Error occured");
+    }
+  });
+
+  app.delete("/user/:id" , (req,res) =>{
+    let {id} = req.params;
+    let q = `DELETE FROM user WHERE id='${id}'`;
+    connection.query(q,(err,result)=>{
+      res.redirect("/user");
+    })
+  });
 
   app.listen(port, ()=>{
     console.log(`you are listening ${port}.`)
-  })
+  });
   
    
   // connection.end();
